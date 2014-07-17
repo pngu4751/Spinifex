@@ -1,4 +1,0 @@
-Spinifex
-========
-
-MARSS Spinifex models
