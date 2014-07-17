@@ -1,0 +1,197 @@
+library(MARSS)
+
+# Change rownames for data
+
+rownames(mc_spin) = paste("MC", rownames(mc_spin), sep = "_")
+rownames(fr_spin) = paste("FR", rownames(fr_spin), sep = "_")
+rownames(cs_spin) = paste("CS", rownames(cs_spin), sep = "_")
+rownames(ss_spin) = paste("SS", rownames(ss_spin), sep = "_")
+
+# Combine all sites
+
+all_spin = rbind(mc_spin, fr_spin, cs_spin, ss_spin)
+
+
+##########################################################################################
+####    WITHOUT COVARIATES         #######################################################
+##########################################################################################
+
+# Complete heterogeneity hypothesis
+# 8 States - 4 sites, 2 burn histories
+
+R.model = matrix(list(0), 120, 120)
+diag(R.model) = rep(c("MC_B", "MC_U", "FR_B", "FR_U",
+                      "CS_B", "CS_U", "SS_B", "SS_U"), each = 15)
+
+all.spin.model = list(Q = "unconstrained", R = R.model, tinitx = 1, 
+                      Z = factor(c(rep(1,15), rep(2,15), 
+                                   rep(3,15), rep(4,15), 
+                                   rep(5,15), rep(6,15), 
+                                   rep(7,15), rep(8,15))))
+
+all.spin = MARSS(all_spin, model = all.spin.model, 
+                 control = list(allow.degen = FALSE, maxit = 5000))
+
+
+# Independent site hypothesis
+# 4 States - 4 sites
+
+R.model = matrix(list(0), 120, 120)
+diag(R.model) = rep(c("MC_B", "MC_U", "FR_B", "FR_U",
+                      "CS_B", "CS_U", "SS_B", "SS_U"), each = 15)
+
+all.spin.2.model = list(Q = "unconstrained", R = R.model, tinitx = 1, 
+                      Z = factor(c(rep(1,30), rep(2,30), 
+                                   rep(3,30), rep(4,30))))
+
+all.spin.2 = MARSS(all_spin, model = all.spin.2.model, 
+                 control = list(allow.degen = FALSE, maxit = 1000))
+
+
+# Fire history hypothesis
+# 2 States - Burnt and unburnt
+
+R.model = matrix(list(0), 120, 120)
+diag(R.model) = rep(c("MC_B", "MC_U", "FR_B", "FR_U",
+                      "CS_B", "CS_U", "SS_B", "SS_U"), each = 15)
+
+
+all.spin.3.model = list(Q = "unconstrained", R = R.model, tinitx = 1, 
+                        Z = factor(rep(c(rep(1,15), rep(2,15)), times = 4)))
+
+all.spin.3 = MARSS(all_spin, model = all.spin.3.model, 
+                   control = list(allow.degen = FALSE, maxit = 5000))
+
+
+# Complete homogeneity hypothesis
+# 1 State - Everything
+
+R.model = matrix(list(0), 120, 120)
+diag(R.model) = rep(c("MC_B", "MC_U", "FR_B", "FR_U",
+                      "CS_B", "CS_U", "SS_B", "SS_U"), each = 15)
+
+
+all.spin.4.model = list(Q = "unconstrained", R = R.model, tinitx = 1, 
+                        Z = factor(c(rep(1, 120))))
+
+all.spin.4 = MARSS(all_spin, model = all.spin.4.model, 
+                   control = list(maxit = 5000))
+
+
+##### Bootstrapped AIC values - AICb's
+
+all.spin.AICb = MARSSaic(all.spin, output = "AICbp",
+                        Options = list(nboot = 1000))
+all.spin.2.AICb = MARSSaic(all.spin.2, output = "AICbp",
+                          Options = list(nboot = 1000))
+all.spin.3.AICb = MARSSaic(all.spin.3, output = "AICbp",
+                           Options = list(nboot = 1000))
+all.spin.4.AICb = MARSSaic(all.spin.4, output = "AICbp",
+                           Options = list(nboot = 1000))
+
+all.spin.AICc = data.frame(Heterogeneity = all.spin$AICc, 
+                           Independent_Site = all.spin.2$AICc,
+                           Fire_History = all.spin.3$AICc, 
+                           Homogeneity = all.spin.4$AICc)
+
+all.spin.AICb = data.frame(Heterogeneity = all.spin.AICb$AICbp, 
+                           Independent_Site = all.spin.2.AICb$AICbp,
+                           Fire_History = all.spin.3.AICb$AICbp, 
+                           Homogeneity = all.spin.4.AICb$AICbp)
+
+
+all.spin.CI = MARSSparamCIs(all.spin.3, method = "parametric", nboot = 1000)
+
+
+##########################################################################################
+####    STATE PREDICTIONS         #######################################################
+##########################################################################################
+
+
+par(mfrow = c(4,2),mar = c(2,3.5,2.5,1.5),mgp = c(2.2,1,0))
+
+##### Main Camp
+
+matplot(t(mc_spin[1:15,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        main = "Burnt", ylab = "Main Camp")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+lines(apply(mc_spin[1:15,],2,mean), type = "p", pch = 16)
+
+lines(all.spin.c$states[1,], col = "dark green", lwd = 2)
+CI = rbind(all.spin.c$states[1,] - 1.96*all.spin.c$states.se[1,], all.spin.c$states[1,] + 1.96*all.spin.c$states.se[1,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#458B0040", border = "NA")
+
+
+matplot(t(mc_spin[16:30,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        main = "Unburnt")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+lines(apply(mc_spin[16:30,],2,mean), type = "p", pch = 16)
+
+lines(all.spin.c$states[2,], col = "dark green", lwd = 2)
+CI = rbind(all.spin.c$states[2,] - 1.96*all.spin.c$states.se[2,], all.spin.c$states[2,] + 1.96*all.spin.c$states.se[2,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#458B0040", border = "NA")
+
+
+##### Field River
+
+matplot(t(fr_spin[1:15,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        ylab = "Field River")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+lines(apply(fr_spin[1:15,],2,mean), type = "p", pch = 16)
+
+lines(all.spin.c$states[1,], col = "dark green", lwd = 2)
+CI = rbind(all.spin.c$states[1,] - 1.96*all.spin.c$states.se[1,], all.spin.c$states[1,] + 1.96*all.spin.c$states.se[1,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#458B0040", border = "NA")
+
+
+matplot(t(fr_spin[16:30,]), pch = 1, col = 1, cex = 0.6, xaxt = "n")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+lines(apply(cs_spin[16:30,],2,mean), type = "p", pch = 16)
+
+lines(all.spin.c$states[2,], col = "dark green", lwd = 2)
+CI = rbind(all.spin.c$states[2,] - 1.96*all.spin.c$states.se[2,], all.spin.c$states[2,] + 1.96*all.spin.c$states.se[2,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#458B0040", border = "NA")
+
+
+##### Carlo Shitty
+
+matplot(t(cs_spin[1:15,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        ylab = "Carlo Shitty")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+lines(apply(cs_spin[1:15,],2,mean), type = "p", pch = 16)
+
+lines(all.spin.c$states[1,], col = "dark green", lwd = 2)
+CI = rbind(all.spin.c$states[1,] - 1.96*all.spin.c$states.se[1,], all.spin.c$states[1,] + 1.96*all.spin.c$states.se[1,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#458B0040", border = "NA")
+
+
+matplot(t(cs_spin[16:30,]), pch = 1, col = 1, cex = 0.6, xaxt = "n")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+lines(apply(cs_spin[16:30,],2,mean), type = "p", pch = 16)
+
+lines(all.spin.c$states[2,], col = "dark green", lwd = 2)
+CI = rbind(all.spin.c$states[2,] - 1.96*all.spin.c$states.se[2,], all.spin.c$states[2,] + 1.96*all.spin.c$states.se[2,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#458B0040", border = "NA")
+
+
+##### South Site
+
+matplot(t(ss_spin[1:15,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        ylab = "South Site", xlab = "Time")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+lines(apply(ss_spin[1:15,],2,mean), type = "p", pch = 16)
+
+lines(all.spin.c$states[1,], col = "dark green", lwd = 2)
+CI = rbind(all.spin.c$states[1,] - 1.96*all.spin.c$states.se[1,], all.spin.c$states[1,] + 1.96*all.spin.c$states.se[1,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#458B0040", border = "NA")
+
+
+matplot(t(ss_spin[16:30,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        xlab = "Time")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+lines(apply(mc_spin[16:30,],2,mean), type = "p", pch = 16)
+
+lines(all.spin.c$states[2,], col = "dark green", lwd = 2)
+CI = rbind(all.spin.c$states[2,] - 1.96*all.spin.c$states.se[2,], all.spin.c$states[2,] + 1.96*all.spin.c$states.se[2,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#458B0040", border = "NA")
+
