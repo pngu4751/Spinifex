@@ -1,0 +1,466 @@
+##########################################################################################
+####    % AREA COVER VS RAW AREA COVER         ###########################################
+##########################################################################################
+
+# Create models
+
+mc_spin_per = mc_spin/25
+mc_spin_perlog = log(mc_spin_per+1)
+mc_spin_per100 = mc_spin_per * 100
+mc_spin_per100log = log(mc_spin_per+1)
+mc_spin_area = mc_spin
+mc_spin_arealog = log(mc_spin + 1)
+
+R.model = matrix(list(0), 30, 30)
+diag(R.model) = rep(c("SP_B", "SP_U"), each = 15)
+
+mc.spin.per.model = list(Q = "unconstrained", R = R.model,
+                         B = "diagonal and unequal", tinitx = 1,
+                         Z = factor(c(rep(1,15), rep(2,15))),
+                         A = "zero")
+
+mc.spin.per = MARSS(mc_spin_per, model = mc.spin.per.model)
+
+mc.spin.perlog = MARSS(mc_spin_perlog, model = mc.spin.per.model)
+
+mc.spin.per100 = MARSS(mc_spin_per100, model = mc.spin.per.model)
+
+mc.spin.per100log = MARSS(mc_spin_per100log, model = mc.spin.per.model)
+
+mc.spin.area = MARSS(mc_spin_area, model = mc.spin.per.model)
+
+mc.spin.arealog = MARSS(mc_spin_arealog, model = mc.spin.per.model, control = list(allow.degen = FALSE, maxit = 10000))
+
+# Plots
+
+par(mfrow = c(2,6), mar = c(2,3.5,2.5,1.5),mgp = c(2.2,1,0))
+
+# Burnt
+
+matplot(t(mc_spin_per[1:15,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        main = "Burnt", ylab = "% Cover")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+lines(apply(mc_spin_per[1:15,],2,mean), type = "p", pch = 16)
+lines(mc.spin.per$states[1,], lwd = 2)
+
+matplot(t(mc_spin_perlog[1:15,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        main = "Burnt", ylab = "log % Cover")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+lines(apply(mc_spin_perlog[1:15,],2,mean), type = "p", pch = 16)
+lines(mc.spin.perlog$states[1,], lwd = 2)
+
+
+matplot(t(mc_spin_per100[1:15,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        main = "Burnt", ylab = "% Cover x 100")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+lines(apply(mc_spin_per100[1:15,],2,mean), type = "p", pch = 16)
+lines(mc.spin.per100$states[1,], lwd = 2)
+
+matplot(t(mc_spin_per100log[1:15,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        main = "Burnt", ylab = "log % Cover x 100")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+lines(apply(mc_spin_per100log[1:15,],2,mean), type = "p", pch = 16)
+lines(mc.spin.per100log$states[1,], lwd = 2)
+
+
+matplot(t(mc_spin_area[1:15,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        main = "Burnt", ylab = bquote(Area ~ Cover ~ (m^2)))
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+lines(apply(mc_spin_area[1:15,],2,mean), type = "p", pch = 16)
+lines(mc.spin.area$states[1,], lwd = 2)
+
+matplot(t(mc_spin_arealog[1:15,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        main = "Burnt", ylab = bquote(log ~ Area ~ Cover ~ (m^2)))
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+lines(apply(mc_spin_arealog[1:15,],2,mean), type = "p", pch = 16)
+lines(mc.spin.arealog$states[1,], lwd = 2)
+
+# Unburnt
+
+matplot(t(mc_spin_per[16:30,]), pch = 1, col = 1, cex = 0.6, xaxt = "n",
+        main = "Unburnt", ylab = "% Cover")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+lines(apply(mc_spin_per[16:30,],2,mean), type = "p", pch = 16)
+lines(mc.spin.per$states[2,], lwd = 2)
+
+matplot(t(mc_spin_perlog[16:30,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        main = "Unburnt", ylab = "log % Cover")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+lines(apply(mc_spin_perlog[16:30,],2,mean), type = "p", pch = 16)
+lines(mc.spin.perlog$states[2,], lwd = 2)
+
+
+matplot(t(mc_spin_per100[16:30,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        main = "Unburnt", ylab = "% Cover x 100")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+
+lines(apply(mc_spin_per100[16:30,],2,mean), type = "p", pch = 16)
+lines(mc.spin.per100$states[2,], lwd = 2)
+
+
+matplot(t(mc_spin_per100log[16:30,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        main = "Unburnt", ylab = "log % Cover x 100")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+
+lines(apply(mc_spin_per100log[16:30,],2,mean), type = "p", pch = 16)
+lines(mc.spin.per100log$states[2,], lwd = 2)
+
+
+matplot(t(mc_spin_area[16:30,]), pch = 1, col = 1, cex = 0.6, xaxt = "n",
+        main = "Unburnt", ylab = bquote(Area ~ Cover ~ (m^2)))
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+
+lines(apply(mc_spin_area[16:30,],2,mean), type = "p", pch = 16)
+lines(mc.spin.area$states[2,], lwd = 2)
+
+matplot(t(mc_spin_arealog[16:30,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        main = "Unburnt", ylab = bquote(log ~ Area ~ Cover ~ (m^2)))
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+
+lines(apply(mc_spin_arealog[16:30,],2,mean), type = "p", pch = 16)
+lines(mc.spin.arealog$states[2,], lwd = 2)
+
+
+##########################################################################################
+####    PLOTS OF 2 AND SINGLE STATE MODELS        ########################################
+##########################################################################################
+
+par(mfrow = c(4,2), mar = c(2,3.5,2.5,1.5),mgp = c(2.2,1,0))
+
+##### MAIN CAMP
+# Burnt
+
+matplot(t(mc_spin[1:15,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        main = "Burnt", ylab = "Main Camp")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+
+lines(apply(mc_spin[1:15,],2,mean), type = "p", pch = 16)
+lines(mc.spin$states[1,], lwd = 2)
+lines(mc.spin.2$states[1,], col = 2, lwd = 2)
+
+CI = rbind(mc.spin$states[1,] - 1.96*mc.spin$states.se[1,], mc.spin$states[1,] + 1.96*mc.spin$states.se[1,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#66666640", border = "NA")
+CI = rbind(mc.spin.2$states[1,] - 1.96*mc.spin.2$states.se[1,], mc.spin.2$states[1,] + 1.96*mc.spin.2$states.se[1,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#FF000040", border = "NA")
+
+# Unburnt
+
+matplot(t(mc_spin[16:30,]), pch = 1, col = 1, cex = 0.6, xaxt = "n",
+        main = "Unburnt", ylab = "")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+
+lines(apply(mc_spin[16:30,],2,mean), type = "p", pch = 16)
+lines(mc.spin$states[2,], lwd = 2)
+lines(mc.spin.2$states[1,] + mc.spin.2$par$A[1], col = 2, lwd = 2)
+
+CI = rbind(mc.spin$states[2,] - 1.96*mc.spin$states.se[2,], mc.spin$states[2,] + 1.96*mc.spin$states.se[2,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#66666640", border = "NA")
+CI = rbind(mc.spin.2$states[1,] +mc.spin.2$par$A[1] - 1.96*mc.spin.2$states.se[1,], mc.spin.2$states[1,] + mc.spin.2$par$A[1] + 1.96*mc.spin.2$states.se[1,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#FF000040", border = "NA")
+
+
+##### FIELD RIVER
+# Burnt
+
+matplot(t(fr_spin[1:15,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        ylab = "Field River")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+
+lines(apply(fr_spin[1:15,],2,mean), type = "p", pch = 16)
+lines(fr.spin$states[1,], lwd = 2)
+lines(fr.spin.2$states[1,], col = 2, lwd = 2)
+
+CI = rbind(fr.spin$states[1,] - 1.96*fr.spin$states.se[1,], fr.spin$states[1,] + 1.96*fr.spin$states.se[1,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#66666640", border = "NA")
+CI = rbind(fr.spin.2$states[1,] - 1.96*fr.spin.2$states.se[1,], fr.spin.2$states[1,] + 1.96*fr.spin.2$states.se[1,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#FF000040", border = "NA")
+
+# Unburnt
+
+matplot(t(fr_spin[16:30,]), pch = 1, col = 1, cex = 0.6, xaxt = "n",
+        ylab = "")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+
+lines(apply(fr_spin[16:30,],2,mean), type = "p", pch = 16)
+lines(fr.spin$states[2,], lwd = 2)
+lines(fr.spin.2$states[1,] + fr.spin.2$par$A[1], col = 2, lwd = 2)
+
+CI = rbind(fr.spin$states[2,] - 1.96*fr.spin$states.se[2,], fr.spin$states[2,] + 1.96*fr.spin$states.se[2,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#66666640", border = "NA")
+CI = rbind(fr.spin.2$states[1,] +fr.spin.2$par$A[1] - 1.96*fr.spin.2$states.se[1,], fr.spin.2$states[1,] + fr.spin.2$par$A[1] + 1.96*fr.spin.2$states.se[1,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#FF000040", border = "NA")
+
+
+##### CARLO SHITTY
+# Burnt
+
+matplot(t(cs_spin[1:15,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        ylab = "Carlo Shitty")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+
+lines(apply(cs_spin[1:15,],2,mean), type = "p", pch = 16)
+lines(cs.spin$states[1,], lwd = 2)
+lines(cs.spin.2$states[1,], col = 2, lwd = 2)
+
+CI = rbind(cs.spin$states[1,] - 1.96*cs.spin$states.se[1,], cs.spin$states[1,] + 1.96*cs.spin$states.se[1,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#66666640", border = "NA")
+CI = rbind(cs.spin.2$states[1,] - 1.96*cs.spin.2$states.se[1,], cs.spin.2$states[1,] + 1.96*cs.spin.2$states.se[1,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#FF000040", border = "NA")
+
+# Unburnt
+
+matplot(t(cs_spin[16:30,]), pch = 1, col = 1, cex = 0.6, xaxt = "n",
+        ylab = "")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+
+lines(apply(cs_spin[16:30,],2,mean), type = "p", pch = 16)
+lines(cs.spin$states[2,], lwd = 2)
+lines(cs.spin.2$states[1,] + cs.spin.2$par$A[1], col = 2, lwd = 2)
+
+CI = rbind(cs.spin$states[2,] - 1.96*cs.spin$states.se[2,], cs.spin$states[2,] + 1.96*cs.spin$states.se[2,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#66666640", border = "NA")
+CI = rbind(cs.spin.2$states[1,] +cs.spin.2$par$A[1] - 1.96*cs.spin.2$states.se[1,], cs.spin.2$states[1,] + cs.spin.2$par$A[1] + 1.96*cs.spin.2$states.se[1,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#FF000040", border = "NA")
+
+
+##### SOUTH SITE
+# Burnt
+
+matplot(t(ss_spin[1:15,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        ylab = "South Site")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+
+lines(apply(ss_spin[1:15,],2,mean), type = "p", pch = 16)
+lines(ss.spin$states[1,], lwd = 2)
+lines(ss.spin.2$states[1,], col = 2, lwd = 2)
+
+CI = rbind(ss.spin$states[1,] - 1.96*ss.spin$states.se[1,], ss.spin$states[1,] + 1.96*ss.spin$states.se[1,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#66666640", border = "NA")
+CI = rbind(ss.spin.2$states[1,] - 1.96*ss.spin.2$states.se[1,], ss.spin.2$states[1,] + 1.96*ss.spin.2$states.se[1,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#FF000040", border = "NA")
+
+# Unburnt
+
+matplot(t(ss_spin[16:30,]), pch = 1, col = 1, cex = 0.6, xaxt = "n",
+        ylab = "")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+
+lines(apply(ss_spin[16:30,],2,mean), type = "p", pch = 16)
+lines(ss.spin$states[2,], lwd = 2)
+lines(ss.spin.2$states[1,] + ss.spin.2$par$A[1], col = 2, lwd = 2)
+
+CI = rbind(ss.spin$states[2,] - 1.96*ss.spin$states.se[2,], ss.spin$states[2,] + 1.96*ss.spin$states.se[2,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#66666640", border = "NA")
+CI = rbind(ss.spin.2$states[1,] +ss.spin.2$par$A[1] - 1.96*ss.spin.2$states.se[1,], ss.spin.2$states[1,] + ss.spin.2$par$A[1] + 1.96*ss.spin.2$states.se[1,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#FF000040", border = "NA")
+
+
+##########################################################################################
+####    BEST FITTING SITE MODEL WITH COVARIATES        ###############################
+##########################################################################################
+
+par(mfrow = c(4,2), mar = c(2,3.5,2.5,1.5),mgp = c(2.2,1,0))
+x = c(1:35, 35:1)
+
+##### MAIN CAMP
+##### Single state model
+
+matplot(t(mc_spin[1:15,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        main = "Burnt", ylab = "Main Camp")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+lines(apply(mc_spin[1:15,],2,mean), type = "p", pch = 16)
+lines(mc.spin.c$states[1,], col = "dark green", lwd = 2)
+CI = rbind(mc.spin.c$states[1,] - 1.96*mc.spin.c$states.se[1,], mc.spin.c$states[1,] + 1.96*mc.spin.c$states.se[1,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#458B0040", border = "NA")
+
+
+matplot(t(mc_spin[16:30,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        main = "Unburnt", ylab = "Spinifex", xlab = "Time")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+lines(apply(mc_spin[16:30,],2,mean), type = "p", pch = 16)
+lines(mc.spin.c$states[1,] + mc.spin.c$par$A[1], col = "dark green", lwd = 2)
+CI = rbind(mc.spin.c$states[1,] + mc.spin.c$par$A[1] - 1.96*mc.spin.c$states.se[1,], mc.spin.c$states[1,] + mc.spin.c$par$A[1] + 1.96*mc.spin.c$states.se[1,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#458B0040", border = "NA")
+
+
+##### FIELD RIVER
+##### Two state model
+
+matplot(t(fr_spin[1:15,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        ylab = "Field River")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+lines(apply(fr_spin[1:15,],2,mean), type = "p", pch = 16)
+lines(fr.spin.c$states[1,], col = "dark green", lwd = 2)
+CI = rbind(fr.spin.c$states[1,] - 1.96*fr.spin.c$states.se[1,], fr.spin.c$states[1,] + 1.96*fr.spin.c$states.se[1,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#458B0040", border = "NA")
+
+
+matplot(t(fr_spin[16:30,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        ylab = "")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+lines(apply(fr_spin[16:30,],2,mean), type = "p", pch = 16)
+lines(fr.spin.c$states[2,], col = "dark green", lwd = 2)
+CI = rbind(fr.spin.c$states[2,] - 1.96*fr.spin.c$states.se[2,], fr.spin.c$states[2,] + 1.96*fr.spin.c$states.se[2,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#458B0040", border = "NA")
+
+
+##### CARLO SHITTY
+##### Single state model
+
+matplot(t(cs_spin[1:15,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        ylab = "Carlo Shitty")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+lines(apply(cs_spin[1:15,],2,mean), type = "p", pch = 16)
+lines(cs.spin.c$states[1,], col = "dark green", lwd = 2)
+CI = rbind(cs.spin.c$states[1,] - 1.96*cs.spin.c$states.se[1,], cs.spin.c$states[1,] + 1.96*cs.spin.c$states.se[1,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#458B0040", border = "NA")
+
+
+matplot(t(cs_spin[16:30,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        ylab = "")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+lines(apply(cs_spin[16:30,],2,mean), type = "p", pch = 16)
+lines(cs.spin.c$states[1,]+cs.spin.c$par$A[1], col = "dark green", lwd = 2)
+CI = rbind(cs.spin.c$states[1,] +cs.spin.c$par$A[1] - 1.96*cs.spin.c$states.se[1,], cs.spin.c$states[1,] +cs.spin.c$par$A[1] + 1.96*cs.spin.c$states.se[1,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#458B0040", border = "NA")
+
+
+##### SOUTH SITE
+##### Two state model
+
+matplot(t(ss_spin[1:15,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        ylab = "South Site")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+lines(apply(ss_spin[1:15,],2,mean), type = "p", pch = 16)
+lines(ss.spin.c$states[1,], col = "dark green", lwd = 2)
+CI = rbind(ss.spin.c$states[1,] - 1.96*ss.spin.c$states.se[1,], ss.spin.c$states[1,] + 1.96*ss.spin.c$states.se[1,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#458B0040", border = "NA")
+
+
+matplot(t(ss_spin[16:30,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        ylab = "")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+lines(apply(ss_spin[16:30,],2,mean), type = "p", pch = 16)
+lines(ss.spin.c$states[1,] + ss.spin.c$par$A[1], col = "dark green", lwd = 2)
+CI = rbind(ss.spin.c$states[1,] + ss.spin.c$par$A[1] - 1.96*ss.spin.c$states.se[1,], ss.spin.c$states[1,] + ss.spin.c$par$A[1] + 1.96*ss.spin.c$states.se[1,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#458B0040", border = "NA")
+
+
+##########################################################################################
+####    MULTISITE PLOTS        ###########################################################
+##########################################################################################
+
+x = c(1:35, 35:1)
+
+burnt_spin = rbind(apply(mc_spin[1:15,],2,mean), apply(fr_spin[1:15,],2,mean),
+                   apply(cs_spin[1:15,],2,mean), apply(ss_spin[1:15,],2,mean))
+unburnt_spin = rbind(apply(mc_spin[16:30,],2,mean), apply(fr_spin[16:30,],2,mean),
+                     apply(cs_spin[16:30,],2,mean), apply(ss_spin[16:30,],2,mean))
+
+##### Best fitting model: 2 states - Burnt/Unburnt
+
+burnt.A = mean(all.spin.3$par$A[1:14])
+unburnt.A = mean(all.spin.3$par$A[15:28])
+
+par(mgp = c(2.2, 1, 0), xpd = "TRUE", mar = c(5,4,4,5.5))
+
+matplot(t(burnt_spin), type = "p", pch = c(1,0,2,5), col = "red", cex = c(0.8,0.8,0.8,1), 
+     xaxt = "n", xlab = "Year", ylab = bquote("Raw area cover" ~ (m^2)), bty = "L",
+     main = "Spinifex cover", ylim = c(0, 8))
+axis(1, at = seq(0,36,4) , labels = c(2004:2013))
+
+matlines(t(unburnt_spin), type = "p", pch = c(1,0,2,5), col = "blue", cex = c(0.8,0.8,0.8,1))
+
+lines(all.spin.3$states[1,] + burnt.A, lwd = 2, col = "red")
+CI = rbind(all.spin.3$states[1,] - 1.96*all.spin.3$states.se[1,] + burnt.A, all.spin.3$states[1,] + 1.96*all.spin.3$states.se[1,] + burnt.A)
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#FF000040", border = "NA")
+
+
+lines(all.spin.3$states[2,] + unburnt.A, lwd = 2, col = "blue")
+CI = rbind(all.spin.3$states[2,] - 1.96*all.spin.3$states.se[2,] + unburnt.A, all.spin.3$states[2,] + 1.96*all.spin.3$states.se[2,] + unburnt.A)
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#0000FF40", border = "NA")
+
+
+legend(35.5,6, c("Burnt", "Unburnt"), lty = 1, col = c("red", "blue"), bty = "n", cex = 0.9)
+legend(35.5,5, c("Main Camp", "Field River", "Carlo", "South Site"), pch = c(1,0,2,5), bty = "n", cex = 0.9)
+
+
+##### Complete homogeneity model
+
+A.list = split(all.spin.4$par$A, as.integer(seq_along(all.spin.4$par$A)/15))
+A = sapply(A.list, mean)
+
+
+par(mgp = c(2.2, 1, 0), xpd = "TRUE", mar = c(5,4,4,5.5))
+
+matplot(t(burnt_spin), type = "p", pch = c(16,15,17,18), cex = c(0.8,0.8,0.8,1), 
+     xaxt = "n", xlab = "Year", ylab = bquote("Raw area cover" ~ (m^2)), bty = "L",
+     main = "Spinifex cover", ylim = c(0, 8),
+     col = c("red", "#FF000075", "#FF000050", "#FF000025"))
+axis(1, at = seq(0,36,4) , labels = c(2004:2013))
+
+matlines(t(unburnt_spin), type = "p", pch = 1, cex = c(0.8,0.8,0.8,1),
+         col = c("blue", "#0000FF75", "#0000FF50", "#0000FF25"))
+         
+all.spin.4.states = matrix(rep(all.spin.4$states[1,], 8), nrow = 8, byrow = T)
+all.spin.4.states = all.spin.4.states + A
+matlines(t(all.spin.4.states), lty = 1, lwd = 2, 
+         col = c("red", "blue", "#FF000075",  "#0000FF75",
+                 "#FF000050", "#0000FF50", "#FF000025","#0000FF25"))
+
+legend(35.5,6, c("Burnt", "Unburnt"), lty = 1, col = c("red", "blue"), bty = "n", cex = 0.9)
+legend(35.5,5, c("Main Camp", "Field River", "Carlo", "South Site"), pch = c(1,0,2,5), bty = "n", cex = 0.9)
+
+
+##########################################################################################
+####    Aaron's plots        ###########################################################
+##########################################################################################
+
+# Vuong's model
+
+par(mfrow = c(2,1), mgp = c(2.2, 1, 0), xpd = "TRUE", mar = c(5,4,4,5.5))
+
+matplot(t(burnt_spin), type = "p", pch = c(1,0,2,5), col = "red", cex = c(0.8,0.8,0.8,1), 
+        cex.lab = 1.5, cex.axis = 1.5, cex.main = 1.5, xaxt = "n", xlab = "Year", ylab = "", bty = "L",
+        main = "Spinifex cover (Vuong)", ylim = c(0, 8))
+axis(1, at = seq(0,36,4) , labels = c(2004:2013))
+
+matlines(t(unburnt_spin), type = "p", pch = c(1,0,2,5), col = "blue", cex = c(0.8,0.8,0.8,1))
+
+lines(all.spin.3$states[1,] + burnt.A, lwd = 2, col = "red")
+CI = rbind(all.spin.3$states[1,] - 1.96*all.spin.3$states.se[1,] + burnt.A, all.spin.3$states[1,] + 1.96*all.spin.3$states.se[1,] + burnt.A)
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#FF000040", border = "NA")
+
+
+lines(all.spin.3$states[2,] + unburnt.A, lwd = 2, col = "blue")
+CI = rbind(all.spin.3$states[2,] - 1.96*all.spin.3$states.se[2,] + unburnt.A, all.spin.3$states[2,] + 1.96*all.spin.3$states.se[2,] + unburnt.A)
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#0000FF40", border = "NA")
+
+
+legend(35.5,4, c("Burnt", "Unburnt"), lty = 1, col = c("red", "blue"), bty = "n", cex = 0.9)
+legend(35.5,6, c("Main Camp", "Field River", "Carlo", "South Site"), pch = c(1,0,2,5), bty = "n", cex = 0.9)
+
+
+# Aaron's model
+
+matplot(years,t(Spinlm2),pch=15:23,bty="l" , cex =1, cex.lab=1.5,cex.axis = 1.5,cex.main=1.5,
+        col=c("red","blue", "red", "red", "red", "red","red","blue","blue"),
+        ylab= "", xlab="Year", ylim = c(0,10), main = "Spinifex cover (Aaron)")
+
+matlines(years,SpinMARSSm2.f$states[1,],type="l",
+         lwd=2,lty=1, col="red")
+polygon(c(years,rev(years)),c(lower.spinm21, rev(upper.spinm21)) ,
+        col = adjustcolor("red", 0.3), border = NA)
+
+matlines(years,SpinMARSSm2.f$states[2,],type="l",
+         lwd=2,lty=1, col="blue")
+polygon(c(years,rev(years)),c(lower.spinm22, rev(upper.spinm22)) ,
+        col = adjustcolor("blue", 0.3), border = NA)
+
+legend(2012, 10,xpd=T, legend=sites[,1], pch=15:23, cex=0.8, pt.cex = 1,
+       ,col=c("red","blue", "red", "red", "red", "red","red","blue","blue"),box.col=NA,inset=c(-0.2,0))
+legend(2012, 5, xpd=T,legend=c("Burnt", "Unburnt"), cex = 0.8,lty=c(1,1), lwd = c(1,1)
+       ,col=c("red","blue"),box.col=NA, inset=c(-0.12,.25))
+
+mtext(bquote("Spinifex area" ~ (m^2)), cex = 1.25, side = 2, line = 2.2, at = 13)
+
