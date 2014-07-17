@@ -1,0 +1,137 @@
+library(MARSS)
+
+ss_spin_full = t(read.csv("Spinifex Data/Individual Plots/ss_Spinifex.csv"))
+ss_juv_full = t(read.csv("Spinifex Data/Individual Plots/ss_Juveniles.csv"))
+
+ss_spin = ss_spin_full[,-c(36:37)] # No rainfall data for last two surveys
+# ss_spin = ss_spin/25 # Data presented as total area cover in m2. Divide by 25 to give percentage area cover
+ss_juv = ss_juv_full[,-c(36:37)] # Data presented as count data here
+ss_juv = log(ss_juv+1)
+
+ss_plot = rbind(ss_spin, ss_juv)
+
+##########################################################################################
+####    SPINIFEX ONLY, NO COVARIATES         #############################################
+##########################################################################################
+
+##### MARSS 2 state model
+
+R.model = matrix(list(0), 30, 30)
+diag(R.model) = rep(c("SP_B", "SP_U"), each = 15)
+
+ss.spin.model = list(Q = "unconstrained", tinitx = 1,
+                     Z = factor(c(rep(1,15), rep(2,15))), 
+                     R = R.model, A = "zero")
+
+ss.spin = MARSS(ss_spin, model = ss.spin.model)
+
+
+##### MARSS single state model
+
+R.model = matrix(list(0), 30, 30)
+diag(R.model) = rep(c("SP_B", "SP_U"), each = 15)
+
+A.model = matrix(list(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                      "A1","A1","A1","A1","A1","A1","A1","A1","A1","A1","A1","A1","A1","A1","A1"),30,1)
+
+
+ss.spin.2.model = list(Q = "unconstrained", tinitx = 1,
+                       Z = factor(rep(1, 30)), A = A.model, R = R.model)
+
+ss.spin.2 = MARSS(ss_spin, model = ss.spin.2.model)
+
+
+##### Bootstrapped AIC values - AICb's
+
+ss.spin.AICb = MARSSaic(ss.spin, output = "AICbp",
+                        Options = list(nboot = 1000))
+ss.spin.2.AICb = MARSSaic(ss.spin.2, output = "AICbp",
+                          Options = list(nboot = 1000))
+
+ss.AICb = c(ss.spin.AICb$AICbp, ss.spin.2.AICb$AICbp)
+
+
+##########################################################################################
+####    STATE PREDICTIONS COMPARISON        ##############################################
+##########################################################################################
+
+##### Burnt
+
+matplot(t(ss_spin[1:15,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        main = "South Site: Burnt Spinifex", ylab = "Spinifex", xlab = "Time")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+
+lines(apply(ss_spin[1:15,],2,mean), type = "p", pch = 16)
+lines(ss.spin$states[1,], lwd = 2)
+lines(ss.spin.2$states[1,], col = 2, lwd = 2)
+
+
+##### Unburnt
+
+matplot(t(ss_spin[16:30,]), pch = 1, col = 1, cex = 0.6, xaxt = "n",
+        main = "South Site: Unburnt Spinifex", ylab = "Spinifex", xlab = "Time")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+
+lines(apply(ss_spin[16:30,],2,mean), type = "p", pch = 16)
+lines(ss.spin$states[2,], lwd = 2)
+lines(ss.spin.2$states[1,] + ss.spin.2$par$A[1], col = 2, lwd = 2)
+
+
+
+##########################################################################################
+####    SPINIFEX ONLY, WITH COVARIATES         ###########################################
+##########################################################################################
+
+c.model = t(data.frame("ss Cum 11" = log(as.numeric(ss_cums[10,]))))
+
+R.model = matrix(list(0), 30, 30)
+diag(R.model) = rep(c("SP_B", "SP_U"), each = 15)
+
+A.model = matrix(list(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                      "A1","A1","A1","A1","A1","A1","A1","A1","A1","A1","A1","A1","A1","A1","A1"),30,1)
+
+ss.spin.c.model = list(Q = "unconstrained", tinitx = 1,
+                       Z = factor(c(rep(1,30))), 
+                       R = R.model, A = A.model,
+                       c = c.model, C = "unconstrained")
+
+ss.spin.c = MARSS(ss_spin, model = ss.spin.c.model, 
+                  control = list(allow.degen = FALSE, maxit = 5000))
+
+
+
+##########################################################################################
+####    STATE PREDICTIONS WITH CI        #################################################
+##########################################################################################
+
+x = c(1:35, 35:1)
+
+
+##### Burnt
+
+matplot(t(ss_spin[1:15,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        main = "South Site: Burnt Spinifex", ylab = "Spinifex", xlab = "Time")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+
+lines(apply(ss_spin[1:15,],2,mean), type = "p", pch = 16)
+lines(ss.spin.c$states[1,], col = "dark green", lwd = 2)
+CI = rbind(ss.spin.c$states[1,] - 1.96*ss.spin.c$states.se[1,], ss.spin.c$states[1,] + 1.96*ss.spin.c$states.se[1,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#458B0040", border = "NA")
+
+
+##### Unburnt
+
+matplot(t(ss_spin[16:30,]), pch = 1, col = 1, cex = 0.6, xaxt = "n", 
+        main = "South Site: Unburnt Spinifex", ylab = "Spinifex", xlab = "Time")
+axis(1, at = seq(0,32,4) , labels = c(2004:2012))
+
+lines(apply(ss_spin[16:30,],2,mean), type = "p", pch = 16)
+lines(ss.spin.c$states[2,], col = "dark green", lwd = 2)
+CI = rbind(ss.spin.c$states[2,] - 1.96*ss.spin.c$states.se[2,], ss.spin.c$states[2,] + 1.96*ss.spin.c$states.se[2,])
+polygon(x, c(CI[2,], rev(CI[1,])), col = "#458B0040", border = "NA")
+
+
+
+##### Confidence intervals
+
+ss.spin.CI = MARSSparamCIs(ss.spin.c, method = "parametric", nboot = 1000)
